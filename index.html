@@ -3453,7 +3453,7 @@ function renderTargetAch(){
 
 // ── Zone Trends — bt-bar wrapper around buildMoM ──
 const ZONE_METRICS = [
-  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
+  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'achval',label:'Ach ₹'},{k:'target',label:'Target'},
   {k:'ach',label:'Ach %'},{k:'contrib',label:'Contrib %'},{k:'mom',label:'MoM'},{k:'yoy',label:'YoY'},
 ];
 function renderZoneMoM(){
@@ -4616,13 +4616,12 @@ function buildMoM(cfg) {
 
   const overviewCell = (s, an, t, contrib, mom, yoy, isFy) => {
     const a = ach(an, t);
-    // Distributor Trends overview cell: total sales sits in row 1; this line surfaces
-    // the ach-against-target value (an = the Ach% numerator) ahead of Target, so the
-    // Ach% pill (an ÷ t) reconciles with two visible figures. Zone Trends keeps Target only.
+    // Overview cell: total sales sits in row 1; this line surfaces the
+    // ach-against-target value (an = Include=Yes sales of target-bearing stores =
+    // the Ach% numerator) ahead of Target, so the Ach% pill (an ÷ t) reconciles
+    // with two visible figures. Applies to both Zone and Distributor trends.
     const tgtLine = cfg.useTarget
-      ? (cfg.mode === 'store'
-          ? `<div class="zc-tgt">Ach <b>${t ? fmtV(an) : '—'}</b> · Target <b>${t ? fmtV(t) : '—'}</b></div>`
-          : `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b></div>`)
+      ? `<div class="zc-tgt">Ach <b>${t ? fmtV(an) : '—'}</b> · Target <b>${t ? fmtV(t) : '—'}</b></div>`
       : '';
     const contribRow = isFy ? '' :
       `<div class="zc-contrib"><div class="zc-bar"><i style="width:${Math.min(contrib, 100)}%"></i></div><span>${contrib.toFixed(0)}% contrib</span></div>`;
