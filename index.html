@@ -4612,7 +4612,11 @@ function buildMoM(cfg) {
 
   const overviewCell = (s, an, t, contrib, mom, yoy, isFy) => {
     const a = ach(an, t);
-    const tgtLine = cfg.useTarget ? `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b></div>` : '';
+    // Show the achievement-against-target value (sales of target-bearing stores =
+    // the Ach% numerator) alongside Target, so the % reconciles with a visible
+    // figure. Distributor Trends only (store mode); Zone Trends keeps Target alone.
+    const achVal = (cfg.useTarget && cfg.mode === 'store' && t) ? ` · Ach <b>${fmtV(an)}</b>` : '';
+    const tgtLine = cfg.useTarget ? `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b>${achVal}</div>` : '';
     const contribRow = isFy ? '' :
       `<div class="zc-contrib"><div class="zc-bar"><i style="width:${Math.min(contrib, 100)}%"></i></div><span>${contrib.toFixed(0)}% contrib</span></div>`;
     const growthRow = isFy
