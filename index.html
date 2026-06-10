@@ -4612,7 +4612,14 @@ function buildMoM(cfg) {
 
   const overviewCell = (s, an, t, contrib, mom, yoy, isFy) => {
     const a = ach(an, t);
-    const tgtLine = cfg.useTarget ? `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b></div>` : '';
+    // Distributor Trends overview cell: total sales sits in row 1; this line surfaces
+    // the ach-against-target value (an = the Ach% numerator) ahead of Target, so the
+    // Ach% pill (an ÷ t) reconciles with two visible figures. Zone Trends keeps Target only.
+    const tgtLine = cfg.useTarget
+      ? (cfg.mode === 'store'
+          ? `<div class="zc-tgt">Ach <b>${t ? fmtV(an) : '—'}</b> · Target <b>${t ? fmtV(t) : '—'}</b></div>`
+          : `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b></div>`)
+      : '';
     const contribRow = isFy ? '' :
       `<div class="zc-contrib"><div class="zc-bar"><i style="width:${Math.min(contrib, 100)}%"></i></div><span>${contrib.toFixed(0)}% contrib</span></div>`;
     const growthRow = isFy
