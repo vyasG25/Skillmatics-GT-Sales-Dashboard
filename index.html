@@ -3519,7 +3519,7 @@ function renderZoneMoM(){
 // ── Distributor Trends — bt-bar wrapper around buildMoM ──
 // Metric definitions mirrored from buildMoM for the bt-bar label.
 const STORE_METRICS = [
-  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'target',label:'Target'},
+  {k:'overview',label:'Overview'},{k:'sales',label:'Sales'},{k:'achval',label:'Ach ₹'},{k:'target',label:'Target'},
   {k:'ach',label:'Ach %'},{k:'contrib',label:'Contrib %'},{k:'mom',label:'MoM'},{k:'yoy',label:'YoY'},
 ];
 function renderStoreMoM(){
@@ -4612,11 +4612,7 @@ function buildMoM(cfg) {
 
   const overviewCell = (s, an, t, contrib, mom, yoy, isFy) => {
     const a = ach(an, t);
-    // Show the achievement-against-target value (sales of target-bearing stores =
-    // the Ach% numerator) alongside Target, so the % reconciles with a visible
-    // figure. Distributor Trends only (store mode); Zone Trends keeps Target alone.
-    const achVal = (cfg.useTarget && cfg.mode === 'store' && t) ? ` · Ach <b>${fmtV(an)}</b>` : '';
-    const tgtLine = cfg.useTarget ? `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b>${achVal}</div>` : '';
+    const tgtLine = cfg.useTarget ? `<div class="zc-tgt">Target <b>${t ? fmtV(t) : '—'}</b></div>` : '';
     const contribRow = isFy ? '' :
       `<div class="zc-contrib"><div class="zc-bar"><i style="width:${Math.min(contrib, 100)}%"></i></div><span>${contrib.toFixed(0)}% contrib</span></div>`;
     const growthRow = isFy
@@ -4633,6 +4629,7 @@ function buildMoM(cfg) {
   const singleCell = (s, an, t, contrib, mom, yoy) => {
     switch (curMetric) {
       case 'sales':   return { html: `<span class="zsingle">${fmtV(s)}</span>`, style: tint(GREEN, maxSale ? s / maxSale : 0) };
+      case 'achval':  return { html: `<span class="zsingle">${t ? fmtV(an) : '—'}</span>`, style: t ? tint(GREEN, maxSale ? an / maxSale : 0) : '' };
       case 'target':  return { html: `<span class="zsingle">${t ? fmtV(t) : '—'}</span>`, style: tint(BLUE, maxTgt ? t / maxTgt : 0) };
       case 'ach':   { const a = ach(an, t); return { html: `<span class="pill lg ${a.cls}">${a.txt}</span>`, style: '' }; }
       case 'contrib': return { html: `<span class="zsingle">${contrib.toFixed(1)}%</span>`, style: tint(BLUE, maxContrib ? contrib / maxContrib : 0) };
@@ -4647,7 +4644,7 @@ function buildMoM(cfg) {
 
   // ── header ──
   const subFor = {
-    overview: cfg.useTarget ? 'Sale · Tgt · Ach · Cntrb · M/Y' : 'Sale · Cntrb · MoM · YoY', sales: 'Sales (₹)', target: 'Target (₹)',
+    overview: cfg.useTarget ? 'Sale · Tgt · Ach · Cntrb · M/Y' : 'Sale · Cntrb · MoM · YoY', sales: 'Sales (₹)', achval: 'Sales of target stores', target: 'Target (₹)',
     ach: 'Tgt-store sales ÷ Target', contrib: 'Share of month', mom: 'vs prev month', yoy: 'vs last year',
   }[curMetric];
   let dimLeft = 0; cfg.dims.forEach(d => { d.left = dimLeft; dimLeft += d.w; });
