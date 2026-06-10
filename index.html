@@ -4525,6 +4525,10 @@ function buildMoM(cfg) {
   //                 store with no target contributes its sale to the total, NOT to Ach%.
   const stTgt = cfg.useTarget ? zmomTargetByStoreMonth().out : {};
   const hasTgt = (code, mk) => { const m = stTgt[code]; return !!(m && m[mk] > 0); };
+  // Achievement numerator mirrors the dashboard Target vs Achievement panel:
+  // count only sales of target-bearing store-months AND only rows flagged
+  // Include = "Yes" (empty/missing treated as included for older files).
+  const incOK = r => { const v = String(r.include == null ? '' : r.include).trim().toLowerCase(); return v === '' || v === 'yes'; };
   const sale = {}, achNum = {}, meta = {}, monthTot = {}, keysSet = new Set(), monthsSet = new Set();
   for (let i = 0; i < RAW.length; i++) {
     const r = RAW[i];
@@ -4534,7 +4538,7 @@ function buildMoM(cfg) {
     keysSet.add(k); monthsSet.add(mk);
     if (!meta[k]) meta[k] = cfg.rowMeta(r);
     (sale[k] || (sale[k] = {}))[mk] = (sale[k][mk] || 0) + r.amount;
-    if (cfg.useTarget && hasTgt(r.store_code, mk)) {
+    if (cfg.useTarget && hasTgt(r.store_code, mk) && incOK(r)) {
       (achNum[k] || (achNum[k] = {}))[mk] = (achNum[k][mk] || 0) + r.amount;
     }
     monthTot[mk] = (monthTot[mk] || 0) + r.amount;
