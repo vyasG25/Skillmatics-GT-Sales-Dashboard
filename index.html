@@ -1589,31 +1589,33 @@ async function loadDashboardData() {
         const cy = (row['year'] != null ? row['year'] : row['cy']);
         if (cy === '' || cy == null) continue;
 
-        const ac = str(row['sku_code']), ad = str(row['sku_name']);
+        // UPPER+trim every text dimension so case/space variants group as one
+        // (see up()). SKU label is built from the already-normalized code & name.
+        const ac = up(row['sku_code']), ad = up(row['sku_name']);
         const sku = ac && ad ? (ac + ' - ' + ad) : (ac || ad);
 
         RAW[writeIdx++] = {
           cy: str(cy),                                  // calendar year (was 'cy'/'fy'; now JSON 'year')
-          quarter: str(row['quarter']),
-          month: str(row['month']),
-          week: str(row['week']),
-          monthly_week: str(row['monthly_week']),
+          quarter: up(row['quarter']),
+          month: up(row['month']),
+          week: up(row['week']),
+          monthly_week: up(row['monthly_week']),
           bill_date: excelDateToISO(row['date']),
           quantity: +(row['quantity'] != null ? row['quantity'] : row['qty']) || 0,
           amount: +row['value'] || 0,
           article_code: ac,
           article_desc: ad,
           product_code: sku,
-          store_name: str(row['customer_name'] != null ? row['customer_name'] : row['store_name']),
-          store_code: str(row['customer_code'] != null ? row['customer_code'] : row['store_code']),
-          zone_name: str(row['zone']),
-          state_name: str(row['state']),
-          city_name: str(row['city']),
-          brand_name: str(row['brand']),
-          sales_person: str(row['sales_person']),
-          inv_number: str(row['inv_number']),
-          include: str(row['include']),
-          status: str(row['status'])
+          store_name: up(row['customer_name'] != null ? row['customer_name'] : row['store_name']),
+          store_code: up(row['customer_code'] != null ? row['customer_code'] : row['store_code']),
+          zone_name: up(row['zone']),
+          state_name: up(row['state']),
+          city_name: up(row['city']),
+          brand_name: up(row['brand']),
+          sales_person: up(row['sales_person']),
+          inv_number: up(row['inv_number']),
+          include: up(row['include']),
+          status: up(row['status'])
         };
 
         sinceLastYield++;
@@ -1899,6 +1901,12 @@ function yieldToUI() { return new Promise(resolve => setTimeout(resolve, 0)); }
 // Fast string coerce — avoids repeated String() + trim()
 function str(v) { return v == null ? '' : typeof v === 'string' ? v : String(v); }
 
+// Canonicalize a dimension value so the SAME entity written in different cases
+// or with stray padding ("North" / "NORTH" / " north ") collapses into ONE group
+// across every connected report. UPPER + trim is the single canonical form, which
+// stops case/space variants from producing duplicate rows in the dashboards.
+function up(v) { return v == null ? '' : (typeof v === 'string' ? v : String(v)).trim().toUpperCase(); }
+
 // Pre-computed date cache for Excel serial → ISO conversion (avoids repeated Date creation)
 const _dateCache = new Map();
 function excelDateToISO(serial) {
@@ -1968,9 +1976,12 @@ function buildTargetFromJson(records, fileName) {
     const month = String(rec[kMonth] == null ? '' : rec[kMonth]).trim();
     if (!month) continue;
     monthSet.add(month);
-    const storeKey = (kCode ? String(rec[kCode]) : '') + '|' + (kName ? String(rec[kName]) : '');
+    // Store key + dimension values are canonicalized with up() so they match the
+    // (now UPPER+trim) sales store_code / store_name / zone / state, keeping the
+    // Target-vs-Achievement joins intact. Month columns & numeric values untouched.
+    const storeKey = (kCode ? up(rec[kCode]) : '') + '|' + (kName ? up(rec[kName]) : '');
     let row = rowMap.get(storeKey);
-    if (!row) { row = {}; for (const dk of dimKeys) row[dk] = rec[dk]; rowMap.set(storeKey, row); }
+    if (!row) { row = {}; for (const dk of dimKeys) row[dk] = up(rec[dk]); rowMap.set(storeKey, row); }
     row[month] = (row[month] || 0) + (+rec[kValue] || 0);
   }
   // Ensure every store has every month column (default 0) so month detection is stable.
